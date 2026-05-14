@@ -1,0 +1,27 @@
+If you want to clear both current kernel USB logs and old journal USB logs, these are the common commands together.
+
+View USB logs
+Kernel logs
+sudo dmesg | grep -i usb
+Journal logs
+sudo journalctl -k | grep -i usb
+Clear Logs
+Clear current kernel buffer
+sudo dmesg -C
+Remove old journal logs
+sudo journalctl --vacuum-time=1s
+Restart journal service
+sudo systemctl restart systemd-journald
+Verify
+Check kernel logs again
+sudo dmesg | grep -i usb
+Check journal logs again
+sudo journalctl -k | grep -i usb
+
+If both are blank, there are currently no visible USB-related entries in active kernel/journal logs.
+
+Keep in mind:
+
+New USB actions after clearing will appear again.
+Some enterprise/audit logging systems can retain separate logs.
+Normal Ubuntu home setups usually only show what’s in dmesg/journalctl.
