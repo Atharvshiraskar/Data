@@ -1,0 +1,89 @@
+#include <iostream>
+#include <vector>
+#include <omp.h>
+using namespace std;
+
+int main() {
+    int n;
+    cout << "Enter number of vertices: ";
+    cin >> n;
+
+    vector<vector<int>> graph(n, vector<int>(n));
+
+    cout << "Enter adjacency matrix:\n";
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            cin >> graph[i][j];
+        }
+    }
+
+    int start;
+    cout << "Enter starting vertex: ";
+    cin >> start;
+
+    vector<bool> visited(n, false);
+    vector<int> current_level, next_level;
+
+    visited[start] = true;
+    current_level.push_back(start);
+
+    cout << "BFS Traversal: ";
+
+    while (!current_level.empty()) {
+        next_level.clear();
+
+        for (int node : current_level) {
+            cout << node << " ";
+        }
+
+        #pragma omp parallel for
+        for (int i = 0; i < (int)current_level.size(); i++) {
+            int u = current_level[i];
+
+            for (int v = 0; v < n; v++) {
+                if (graph[u][v] == 1) {
+                    bool should_add = false;
+
+                    #pragma omp critical
+                    {
+                        if (!visited[v]) {
+                            visited[v] = true;
+                            should_add = true;
+                        }
+                    }
+
+                    if (should_add) {
+                        #pragma omp critical
+                        next_level.push_back(v);
+                    }
+                }
+            }
+        }
+
+        current_level = next_level;
+    }
+
+    cout << endl;
+    return 0;
+}
+
+
+
+
+
+
+
+Input- 
+
+0 1 1 0 0 0 
+1 0 0 1 1 0
+1 0 0 0 0 1
+0 1 0 0 0 0
+0 1 0 0 0 0
+0 0 1 0 0 0 
+
+Enter starting vertex: 0
+
+Output-
+
+BFS traversal: 0 1 2 3 4 5

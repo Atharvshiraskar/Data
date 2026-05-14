@@ -1,0 +1,542 @@
+From: https://chatgpt.com/c/6a05e105-c30c-8321-90dc-8de387727ec3
+
+
+
+you asked
+
+message time: 2026-05-14 20:19:50
+
+explain the code and the concepts also give definitiona
+
+
+chatgpt response
+
+This project is a Deep Learning based Sentiment Analysis System using the TensorFlow and IMDB movie reviews dataset.
+
+The model reads movie reviews and predicts whether the sentiment is:
+
+Positive 🙂
+Negative 🙁
+
+It uses a Hybrid CNN + LSTM Neural Network.
+
+
+1. Basic Definitions (Very Important for Viva)
+
+What is Sentiment Analysis?
+
+Sentiment Analysis means identifying emotions/opinions from text.
+
+Example:
+
+“Movie was amazing” → Positive
+“Worst movie ever” → Negative
+
+
+2. Important Concepts & Definitions
+
+Deep Learning
+
+Deep Learning is a subset of Machine Learning that uses Neural Networks with multiple layers to learn patterns automatically.
+
+
+Neural Network
+
+A Neural Network is a system inspired by the human brain that learns from data using interconnected neurons.
+
+
+CNN (Convolutional Neural Network)
+
+CNN is mainly used for feature extraction.
+
+In this project:
+
+CNN finds important words/patterns in reviews.
+
+Example:
+
+“excellent acting”
+“waste of time”
+
+These patterns help classify sentiment.
+
+
+LSTM (Long Short-Term Memory)
+
+LSTM is a type of Recurrent Neural Network (RNN).
+
+It remembers previous words and understands sentence sequence.
+
+Example:
+
+“The movie was not good”
+
+
+
+LSTM understands that “not” changes the meaning.
+
+
+Embedding Layer
+
+Embedding converts words into numerical vectors.
+
+Computer cannot understand text directly, so words are converted into numbers.
+
+Example:
+
+good -> [0.12, 0.45, ...]
+bad  -> [-0.22, 0.91, ...]
+
+
+Activation Function
+
+Activation function decides whether a neuron should activate or not.
+
+ReLU
+
+activation='relu'
+
+Formula:
+
+f(x)=\max(0,x)
+
+Negative values → 0
+Positive values → unchanged
+
+Used because:
+
+Fast
+Solves vanishing gradient problem
+
+
+Sigmoid Function
+
+Used in output layer for binary classification.
+
+Formula:
+
+\sigma(x)=\frac{1}{1+e^{-x}}
+
+Output range:
+
+0 to 1
+
+Example:
+
+0.9 → Positive
+0.1 → Negative
+
+
+Loss Function
+
+Loss function measures model error.
+
+This project uses:
+
+binary_crossentropy
+
+Because:
+
+Only 2 classes (positive/negative)
+
+Lower loss = better model.
+
+
+Optimizer
+
+Optimizer updates weights to reduce loss.
+
+This project uses:
+
+adam
+
+Adam optimizer is:
+
+Fast
+Efficient
+Most commonly used
+
+
+Epoch
+
+1 Epoch = One complete pass of training data through model.
+
+Example:
+
+EPOCHS = 10
+
+Means model learns from dataset 10 times.
+
+
+Batch Size
+
+Batch size = Number of samples processed at once.
+
+BATCH_SIZE = 128
+
+Means:
+
+128 reviews processed together.
+
+
+3. Code Explanation Line by Line
+
+CELL 1
+
+import tensorflow as tf
+
+Imports TensorFlow library for deep learning.
+
+
+import numpy as np
+
+Imports NumPy for numerical operations.
+
+
+import matplotlib.pyplot as plt
+
+Used for plotting graphs.
+
+
+from tensorflow.keras.datasets import imdb
+
+Imports IMDB movie review dataset.
+
+
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+
+Used to make all review lengths equal.
+
+
+warnings.filterwarnings('ignore')
+
+Hides warning messages.
+
+
+np.random.seed(42)
+tf.random.set_seed(42)
+
+Ensures same random results every run.
+
+
+CELL 2 — Loading Data
+
+def load_imdb_data(num_words=10000, maxlen=200):
+
+Function to load and preprocess dataset.
+
+
+num_words=10000
+
+Keeps only top 10,000 frequent words.
+
+
+maxlen=200
+
+Each review will have maximum 200 words.
+
+
+(X_train, y_train), (X_test, y_test) = imdb.load_data()
+
+Loads:
+
+Training data
+Testing data
+
+
+X_train = pad_sequences(X_train, maxlen=maxlen)
+
+Makes all reviews same length using padding.
+
+Why needed?
+Neural networks require fixed-size input.
+
+
+Validation Data
+
+X_val = X_train[:val_samples]
+
+Validation data checks performance during training.
+
+
+CELL 3 — Model Creation
+
+Sequential Model
+
+model = tf.keras.Sequential([
+
+Layers are added one after another.
+
+
+Embedding Layer
+
+tf.keras.layers.Embedding(num_words, 128)
+
+Converts words into vectors of size 128.
+
+
+Conv1D Layer
+
+tf.keras.layers.Conv1D(64, 5, activation='relu')
+
+Meaning:
+
+64 filters
+kernel size = 5
+activation = ReLU
+
+CNN extracts important features from text.
+
+
+MaxPooling
+
+tf.keras.layers.MaxPooling1D(2)
+
+Reduces data size and keeps important features.
+
+
+LSTM Layers
+
+tf.keras.layers.LSTM(64, return_sequences=True)
+
+Learns sequence patterns.
+
+return_sequences=True
+means output full sequence to next LSTM.
+
+
+tf.keras.layers.LSTM(32)
+
+Second LSTM layer for deeper learning.
+
+
+Dense Layers
+
+tf.keras.layers.Dense(64, activation='relu')
+
+Fully connected layer for classification learning.
+
+
+Dropout
+
+tf.keras.layers.Dropout(0.5)
+
+Randomly removes neurons during training.
+
+Purpose:
+
+Prevent overfitting
+
+
+Output Layer
+
+tf.keras.layers.Dense(1, activation='sigmoid')
+
+Single neuron because binary classification.
+
+Sigmoid outputs probability.
+
+
+Model Compilation
+
+model.compile(
+    optimizer='adam',
+    loss='binary_crossentropy',
+    metrics=['accuracy']
+)
+
+Meaning:
+
+Adam → optimizer
+Binary Crossentropy → loss function
+Accuracy → evaluation metric
+
+
+CELL 4 — Training
+
+model.fit()
+
+Starts training.
+
+
+EarlyStopping
+
+EarlyStopping()
+
+Stops training automatically if validation loss stops improving.
+
+Purpose:
+
+Prevent overfitting
+Save time
+
+
+ReduceLROnPlateau
+
+Reduces learning rate when performance stops improving.
+
+
+CELL 5 — Graphs
+
+Accuracy Graph
+
+Shows:
+
+Training accuracy
+Validation accuracy
+
+Higher accuracy = better predictions.
+
+
+Loss Graph
+
+Shows model error over epochs.
+
+Lower loss = better model.
+
+
+CELL 6 — Evaluation
+
+model.evaluate()
+
+Checks performance on test dataset.
+
+
+Predictions
+
+model.predict()
+
+Predicts sentiment for reviews.
+
+
+if pred > 0.5
+
+Above 0.5 → Positive
+Below 0.5 → Negative
+
+
+Confusion Matrix
+
+Confusion Matrix shows:
+
+Correct predictions
+Wrong predictions
+
+Predicted Positive Predicted Negative
+Actual Positive TP FN
+Actual Negative FP TN
+
+
+CELL 7 — Custom Review Prediction
+
+predict_review(review_text)
+
+Allows user to enter own movie review.
+
+
+Steps Happening
+
+1. Convert text to lowercase
+
+review_text.lower()
+
+
+2. Split words
+
+words = review_text.split()
+
+
+3. Convert words to numbers
+
+word_index.get(word, 0)
+
+
+4. Padding
+
+pad_sequences()
+
+Makes input fixed size.
+
+
+5. Predict Sentiment
+
+model.predict()
+
+Outputs:
+
+Positive
+Negative
+
+with confidence score.
+
+
+Full Workflow of Project
+
+Movie Review
+      ↓
+Text Preprocessing
+      ↓
+Word Embedding
+      ↓
+CNN Feature Extraction
+      ↓
+LSTM Sequence Learning
+      ↓
+Dense Layers
+      ↓
+Sigmoid Output
+      ↓
+Positive / Negative
+
+
+Viva Questions & Answers
+
+Why CNN is used?
+
+CNN extracts important features and patterns from text.
+
+
+Why LSTM is used?
+
+LSTM understands sequence and context of words.
+
+
+Why sigmoid activation?
+
+Because output is binary classification.
+
+
+Why binary crossentropy?
+
+Because only two classes exist.
+
+
+Why dropout layer?
+
+To prevent overfitting.
+
+
+Difference between training and testing data?
+
+Training data → used for learning
+Testing data → used for final evaluation
+
+
+What is overfitting?
+
+When model memorizes training data but performs poorly on new data.
+
+
+What is padding?
+
+Padding makes all sequences equal length.
+
+
+Why Adam optimizer?
+
+Adam is fast and efficient for deep learning.
+
+
+Short Project Summary for External
+
+“This project performs sentiment analysis on IMDB movie reviews using a Hybrid CNN-LSTM deep learning model. CNN extracts important textual features while LSTM learns sequential dependencies between words. The model is trained using binary crossentropy loss and Adam optimizer, and predicts whether a review is positive or negative.”

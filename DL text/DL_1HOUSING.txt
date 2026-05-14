@@ -1,0 +1,185 @@
+import pandas as pd
+import numpy as np
+import tensorflow as tf
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+#CELL 1
+
+
+def load_boston_housing_data():
+    
+    # Load CSV file (make sure file is in same folder)
+    df = pd.read_csv("HousingData.csv")
+
+    # Handle missing values (important for this dataset)
+    df = df.fillna(df.mean())
+
+    # Split features and target
+    X = df.iloc[:, :-1].values   # all columns except last
+    y = df.iloc[:, -1].values    # last column (MEDV)
+
+    # Normalize data
+    scaler_X = StandardScaler()
+    scaler_y = StandardScaler()
+
+    X = scaler_X.fit_transform(X)
+    y = scaler_y.fit_transform(y.reshape(-1, 1)).flatten()
+
+    return X, y, scaler_y
+
+
+# Load data
+X, y, scaler_y = load_boston_housing_data()
+
+#CELL2
+
+
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+X_train, X_val, y_train, y_val = train_test_split(
+    X_train, y_train, test_size=0.2, random_state=42
+)
+
+
+# Convert to float32 (important)
+X_train = X_train.astype('float32')
+X_val = X_val.astype('float32')
+X_test = X_test.astype('float32')
+
+y_train = y_train.astype('float32')
+y_val = y_val.astype('float32')
+y_test = y_test.astype('float32')
+
+#CELL3
+
+
+batch_size = 32
+
+train_dataset = tf.data.Dataset.from_tensor_slices((X_train, y_train)) \
+    .shuffle(buffer_size=len(X_train)) \
+    .batch(batch_size) \
+    .prefetch(tf.data.AUTOTUNE)
+
+val_dataset = tf.data.Dataset.from_tensor_slices((X_val, y_val)) \
+    .batch(batch_size) \
+    .prefetch(tf.data.AUTOTUNE)
+
+test_dataset = tf.data.Dataset.from_tensor_slices((X_test, y_test)) \
+    .batch(batch_size) \
+    .prefetch(tf.data.AUTOTUNE)
+#CELL4
+
+
+
+
+model = tf.keras.Sequential([
+    tf.keras.layers.Input(shape=(X_train.shape[1],)),  # dynamic input
+
+    tf.keras.layers.Dense(64, activation='relu'),
+    tf.keras.layers.BatchNormalization(),
+
+    tf.keras.layers.Dense(32, activation='relu'),
+    tf.keras.layers.BatchNormalization(),
+
+    tf.keras.layers.Dense(16, activation='relu'),
+
+    tf.keras.layers.Dense(1)  # Linear output (regression)
+])
+
+
+# Compile model
+model.compile(
+    optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
+    loss='mse',
+    metrics=['mae']
+)
+
+#CELL5
+
+
+
+callbacks = [
+    tf.keras.callbacks.EarlyStopping(
+        monitor='val_loss',
+        patience=20,
+        restore_best_weights=True,
+        verbose=1
+    ),
+    tf.keras.callbacks.ReduceLROnPlateau(
+        monitor='val_loss',
+        factor=0.2,
+        patience=10,
+        min_lr=0.00001,
+        verbose=1
+    )
+]
+
+
+#CELL6
+
+
+
+
+history = model.fit(
+    train_dataset,
+    epochs=200,
+    validation_data=val_dataset,
+    callbacks=callbacks,
+    verbose=1
+)
+#CELL7
+
+
+test_loss, test_mae = model.evaluate(test_dataset)
+
+print("\nTest Loss (MSE):", test_loss)
+print("Test MAE:", test_mae)
+#CELL8
+
+
+predictions = model.predict(test_dataset)
+
+# Convert back to original scale
+predictions_rescaled = scaler_y.inverse_transform(predictions)
+y_test_rescaled = scaler_y.inverse_transform(y_test.reshape(-1, 1))
+
+print("\nSample Predictions:")
+for i in range(5):
+    print(f"Predicted: {predictions_rescaled[i][0]:.2f}, Actual: {y_test_rescaled[i][0]:.2f}")
+#CELL8
+
+
+plt.figure()
+plt.plot(history.history['loss'], label='Training Loss')
+plt.plot(history.history['val_loss'], label='Validation Loss')
+plt.xlabel('Epochs')
+plt.ylabel('Loss (MSE)')
+plt.title('Training vs Validation Loss')
+plt.legend()
+plt.show()
+#CELL9
+
+plt.figure()
+plt.plot(history.history['mae'], label='Training MAE')
+plt.plot(history.history['val_mae'], label='Validation MAE')
+plt.xlabel('Epochs')
+plt.ylabel('MAE')
+plt.title('Training vs Validation MAE')
+plt.legend()
+plt.show()
+
+#CELL10
+
+
+
+
+
+
+
+
+
+

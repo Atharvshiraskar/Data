@@ -1,0 +1,102 @@
+#include <iostream>
+#include <omp.h>
+
+using namespace std;
+
+int main() {
+    int rowsA, colsA, rowsB, colsB;
+
+    // Input dimensions
+    cout << "Enter rows and columns of Matrix A: ";
+    cin >> rowsA >> colsA;
+
+    cout << "Enter rows and columns of Matrix B: ";
+    cin >> rowsB >> colsB;
+
+    // Check if multiplication is possible
+    if (colsA != rowsB) {
+        cout << "Matrix multiplication not possible!" << endl;
+        return 0;
+    }
+
+    // Dynamic memory allocation
+    int *A = new int[rowsA * colsA];
+    int *B = new int[rowsB * colsB];
+    int *C = new int[rowsA * colsB];
+
+    // Input Matrix A
+    cout << "Enter elements of Matrix A:\n";
+    for (int i = 0; i < rowsA * colsA; i++) {
+        cin >> A[i];
+    }
+
+    // Input Matrix B
+    cout << "Enter elements of Matrix B:\n";
+    for (int i = 0; i < rowsB * colsB; i++) {
+        cin >> B[i];
+    }
+
+    // OpenMP Parallel Matrix Multiplication
+    #pragma omp parallel for
+    for (int i = 0; i < rowsA; i++) {
+
+        for (int j = 0; j < colsB; j++) {
+
+            int sum = 0;
+
+            for (int k = 0; k < colsA; k++) {
+                sum += A[i * colsA + k] * B[k * colsB + j];
+            }
+
+            C[i * colsB + j] = sum;
+        }
+    }
+
+    // Display Result Matrix
+    cout << "\nResultant Matrix C:\n";
+
+    for (int i = 0; i < rowsA; i++) {
+
+        for (int j = 0; j < colsB; j++) {
+            cout << C[i * colsB + j] << " ";
+        }
+
+        cout << endl;
+    }
+
+    // Free memory
+    delete[] A;
+    delete[] B;
+    delete[] C;
+
+    return 0;
+}
+
+
+
+
+Input-
+
+Enter rows and columns of Matrix A: 3 4
+
+Enter rows and columns of Matrix B: 4 3
+
+Enter elements of Matrix A:
+1 2 3 4
+5 6 7 8 
+9 8 7 6
+
+Enter elements of Matrix B:
+9 8 7
+6 5 4
+3 2 1
+9 8 7
+
+
+
+Output-
+
+Resultant Matrix C:
+66 56 46 
+174 148 122 
+204 174 144 
