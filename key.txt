@@ -20,6 +20,13 @@ sudo journalctl -k | grep -i usb
 
 If both are blank, there are currently no visible USB-related entries in active kernel/journal logs.
 
+# C++ version
+g++ -fopenmp HPCL_Exp_03.cpp -o parallel_reduction
+./parallel_reduction
+
+# Python version
+python HPCL_Exp_03.py
+
 Keep in mind:
 
 New USB actions after clearing will appear again.
